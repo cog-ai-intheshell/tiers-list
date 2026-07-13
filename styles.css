@@ -689,8 +689,6 @@ h1 {
   gap: 32px;
   margin-bottom: 64px;
   padding: 34px 0;
-  border-top: 1px solid var(--line-soft);
-  border-bottom: 1px solid var(--line-soft);
 }
 
 .export-section h2 {

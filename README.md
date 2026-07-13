@@ -4,6 +4,10 @@ Application web autonome permettant d’importer des images, de les classer dans
 
 Le projet fonctionne entièrement dans le navigateur, sans framework, sans base de données et sans envoi d’images vers un serveur.
 
+## Site en production
+
+[https://knighter-tierslist.vercel.app/](https://knighter-tierslist.vercel.app/)
+
 ## Lancer le projet
 
 Prérequis : Python 3 et npm.
