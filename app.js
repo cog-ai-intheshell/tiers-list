@@ -1,9 +1,9 @@
 const tierDefinitions = [
   { id: "original", label: "OG concept", color: "#a98bff" },
-  { id: "tempting", label: "Ça se tente", color: "#73a1f6" },
-  { id: "niche", label: "Trop niche", color: "#ffb36f" },
-  { id: "risky", label: "Image bouffon", color: "#ff7477" },
-  { id: "dead", label: "C’est dead", color: "#666666" },
+  { id: "tempting", label: "Worth a try", color: "#73a1f6" },
+  { id: "niche", label: "Too niche", color: "#ffb36f" },
+  { id: "risky", label: "Could look goofy", color: "#ff7477" },
+  { id: "dead", label: "It’s dead", color: "#666666" },
 ];
 
 const state = {
@@ -52,7 +52,7 @@ function updateFormat(format) {
   }[format];
   document.documentElement.style.setProperty("--tile-ratio", ratio);
   window.requestAnimationFrame(updateTierLayouts);
-  showToast(`Format ${format === "square" ? "carré" : format === "portrait" ? "portrait" : "paysage"} appliqué`);
+  showToast(`${format === "square" ? "Square" : format === "portrait" ? "Portrait" : "Landscape"} format applied`);
 }
 
 function buildTierRows() {
@@ -69,7 +69,7 @@ function buildTierRows() {
     const input = document.createElement("input");
     input.value = tier.label;
     input.maxLength = 28;
-    input.setAttribute("aria-label", `Nom du rang ${tier.label}`);
+    input.setAttribute("aria-label", `Tier name: ${tier.label}`);
     input.addEventListener("input", () => {
       tier.label = input.value;
     });
@@ -77,7 +77,7 @@ function buildTierRows() {
     const dropzone = document.createElement("div");
     dropzone.className = "tier-dropzone";
     dropzone.dataset.zone = tier.id;
-    dropzone.setAttribute("aria-label", `Rang ${tier.label}`);
+    dropzone.setAttribute("aria-label", `${tier.label} tier`);
 
     addDropEvents(dropzone, tier.id);
     dropzone.addEventListener("click", (event) => {
@@ -98,7 +98,7 @@ function createCard(item) {
   card.dataset.itemId = item.id;
   card.tabIndex = 0;
   card.setAttribute("role", "button");
-  card.setAttribute("aria-label", `${item.name}. Cliquez pour sélectionner, ou faites glisser.`);
+  card.setAttribute("aria-label", `${item.name}. Click to select, or drag.`);
   if (state.selectedId === item.id) card.classList.add("is-selected");
 
   const image = document.createElement("img");
@@ -109,7 +109,7 @@ function createCard(item) {
   const remove = document.createElement("button");
   remove.className = "remove-image";
   remove.type = "button";
-  remove.setAttribute("aria-label", `Supprimer ${item.name}`);
+  remove.setAttribute("aria-label", `Remove ${item.name}`);
   remove.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" /></svg>';
   remove.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -263,11 +263,11 @@ function renderItems() {
   const ranked = state.items.filter((item) => item.zone !== "library").length;
   const libraryCount = total - ranked;
   libraryDropzone.classList.toggle("has-images", libraryCount > 0);
-  imageCount.textContent = `${libraryCount} image${libraryCount > 1 ? "s" : ""}`;
-  boardStatus.textContent = total ? `${ranked} / ${total} classée${ranked > 1 ? "s" : ""}` : "Prêt à classer";
+  imageCount.textContent = `${libraryCount} image${libraryCount === 1 ? "" : "s"}`;
+  boardStatus.textContent = total ? `${ranked} / ${total} ranked` : "Ready to rank";
   selectionHelp.innerHTML = state.selectedId
-    ? '<span>Image sélectionnée</span> Cliquez sur un rang ou sur la bibliothèque pour la déplacer.'
-    : '<span>Astuce</span> Cliquez sur une image, puis sur un rang pour la déplacer sans glisser.';
+    ? '<span>Image selected</span> Click a tier or the library to move it.'
+    : '<span>Tip</span> Click an image, then click a tier to move it without dragging.';
   window.requestAnimationFrame(updateTierLayouts);
 }
 
@@ -323,7 +323,7 @@ function removeItem(id) {
   state.items = state.items.filter((item) => item.id !== id);
   if (state.selectedId === id) state.selectedId = null;
   renderItems();
-  showToast("Image supprimée");
+  showToast("Image removed");
 }
 
 function loadCanvasImage(src) {
@@ -423,7 +423,7 @@ async function exportTierList() {
   context.fillRect(margin, boardTop, boardWidth, boardHeaderHeight);
   context.fillStyle = "rgba(248, 248, 248, 0.55)";
   context.font = '600 14px "SF Pro Text", -apple-system, sans-serif';
-  context.fillText("CLASSEMENT", margin + 22, boardTop + 35);
+  context.fillText("RANKING", margin + 22, boardTop + 35);
 
   const loadedImages = new Map();
   await Promise.all(state.items.map(async (item) => {
@@ -519,7 +519,7 @@ async function exportTierList() {
   context.letterSpacing = "0px";
 
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-  if (!blob) throw new Error("Impossible de générer le PNG");
+  if (!blob) throw new Error("Unable to generate the PNG");
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   const safeTitle = pageTitle.textContent.trim().toLowerCase()
@@ -562,7 +562,7 @@ function loadFiles(files, zone = "library") {
   const validFiles = files.filter((file) => {
     const validType = ["image/jpeg", "image/png", "image/webp"].includes(file.type);
     const validSize = file.size <= 12 * 1024 * 1024;
-    if (!validType || !validSize) showToast(`${file.name} n’a pas pu être importé`);
+    if (!validType || !validSize) showToast(`${file.name} could not be imported`);
     return validType && validSize;
   });
 
@@ -581,7 +581,7 @@ function loadFiles(files, zone = "library") {
       loaded += 1;
       if (loaded === validFiles.length) {
         renderItems();
-        showToast(`${loaded} image${loaded > 1 ? "s ajoutées" : " ajoutée"}`);
+        showToast(`${loaded} image${loaded === 1 ? "" : "s"} added`);
       }
     });
     reader.readAsDataURL(file);
@@ -623,12 +623,12 @@ downloadButton.addEventListener("click", async () => {
   const label = downloadButton.querySelector("span");
   const initialLabel = label.textContent;
   downloadButton.disabled = true;
-  label.textContent = "Génération…";
+  label.textContent = "Generating…";
   try {
     await exportTierList();
-    showToast("Tier list téléchargée en PNG");
+    showToast("Tier list downloaded as PNG");
   } catch {
-    showToast("Le PNG n’a pas pu être généré");
+    showToast("The PNG could not be generated");
   } finally {
     downloadButton.disabled = false;
     label.textContent = initialLabel;

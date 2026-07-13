@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#191919" />
     <meta
       name="description"
-      content="Créez votre tier list visuelle, importez vos images et classez-les par glisser-déposer."
+      content="Create a visual tier list, import your images, and rank them with drag and drop."
     />
-    <title>Positionnement — Tier List Maker</title>
+    <title>Knighter — Tier List Maker</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -17,23 +17,23 @@
     <main>
       <section class="hero" aria-labelledby="pageTitle">
         <div class="title-wrap">
-          <h1 id="pageTitle">MES IDÉES DE CONCEPTS</h1>
-          <button class="edit-title-button" id="editTitleButton" type="button" aria-label="Modifier le titre">
+          <h1 id="pageTitle">CONCEPT IDEAS</h1>
+          <button class="edit-title-button" id="editTitleButton" type="button" aria-label="Edit title">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l3.5-.7L19 7.8 16.2 5 4.7 16.5 4 20Z" /></svg>
           </button>
         </div>
-        <p>Importez vos visuels, puis faites-les glisser dans le rang qui leur correspond.</p>
+        <p>Import your visuals, then drag them into the tier where they belong.</p>
       </section>
 
       <section class="board-section" aria-label="Tier list">
         <div class="board-topline">
           <div class="board-status">
             <span class="live-dot" aria-hidden="true"></span>
-            <span id="boardStatus">Prêt à classer</span>
+            <span id="boardStatus">Ready to rank</span>
           </div>
           <div class="hint">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11V6a2 2 0 0 1 4 0v4-2a2 2 0 0 1 4 0v3-1a2 2 0 0 1 4 0v5c0 4-3 7-7 7h-1c-3 0-5-1-7-4l-3-4a2 2 0 0 1 3-3l3 3" /></svg>
-            Glissez, déposez, reclassez
+            Drag, drop, rearrange
           </div>
         </div>
 
@@ -43,60 +43,60 @@
       <section class="library-section" aria-labelledby="libraryTitle">
         <div class="library-header">
           <div>
-            <div class="section-kicker">VOTRE MATIÈRE</div>
+            <div class="section-kicker">YOUR MATERIAL</div>
             <div class="library-title-row">
-              <h2 id="libraryTitle">Bibliothèque</h2>
+              <h2 id="libraryTitle">Library</h2>
               <span class="count-badge" id="imageCount">0 image</span>
             </div>
           </div>
 
           <label class="format-control">
-            <span>FORMAT DES IMAGES</span>
+            <span>IMAGE FORMAT</span>
             <span class="select-wrap">
               <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" /></svg>
-              <select id="formatSelect" aria-label="Format des images">
-                <option value="square">Carré · 1:1</option>
+              <select id="formatSelect" aria-label="Image format">
+                <option value="square">Square · 1:1</option>
                 <option value="portrait">Portrait · 4:5</option>
-                <option value="landscape">Paysage · 16:9</option>
+                <option value="landscape">Landscape · 16:9</option>
               </select>
               <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4" /></svg>
             </span>
           </label>
         </div>
 
-        <div class="library-dropzone" id="libraryDropzone" tabindex="0" role="button" aria-label="Importer des images">
+        <div class="library-dropzone" id="libraryDropzone" tabindex="0" role="button" aria-label="Import images">
           <div class="dropzone-empty" id="dropzoneEmpty">
             <div class="upload-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 16v4h14v-4" /></svg>
             </div>
-            <strong>Déposez vos images ici</strong>
-            <p>Cliquez, collez ou glissez vos fichiers</p>
-            <span>JPG, PNG, WEBP · 12 Mo max</span>
+            <strong>Drop your images here</strong>
+            <p>Click, paste, or drag your files</p>
+            <span>JPG, PNG, WEBP · 12 MB max</span>
           </div>
           <div class="image-grid" id="libraryGrid"></div>
         </div>
 
         <div class="selection-help" id="selectionHelp" aria-live="polite">
-          <span>Astuce</span> Cliquez sur une image, puis sur un rang pour la déplacer sans glisser.
+          <span>Tip</span> Click an image, then click a tier to move it without dragging.
         </div>
       </section>
 
       <section class="export-section" aria-labelledby="exportTitle">
         <div>
-          <div class="section-kicker">EXPORTER</div>
-          <h2 id="exportTitle">Votre tier list est prête ?</h2>
-          <p>Téléchargez une image PNG nette, prête à être partagée.</p>
+          <div class="section-kicker">EXPORT</div>
+          <h2 id="exportTitle">Is your tier list ready?</h2>
+          <p>Download a crisp PNG, ready to share.</p>
         </div>
         <button class="primary-button export-button" id="downloadButton" type="button">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0 0 5-5m-5 5-5-5M4 20h16" /></svg>
-          <span>Télécharger en PNG</span>
+          <span>Download PNG</span>
         </button>
       </section>
     </main>
 
     <footer>
-      <span>POSITIONNEMENT / 2026</span>
-      <span>Vos images restent dans votre navigateur.</span>
+      <span>KNIGHTER TIERS LIST / 2026</span>
+      <span>Your images stay in your browser.</span>
     </footer>
 
     <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
@@ -105,13 +105,13 @@
 
     <dialog id="titleDialog">
       <form method="dialog" id="titleForm">
-        <div class="dialog-kicker">PERSONNALISER</div>
-        <h2>Titre de la tier list</h2>
-        <label for="titleInput">Votre titre</label>
+        <div class="dialog-kicker">CUSTOMIZE</div>
+        <h2>Tier list title</h2>
+        <label for="titleInput">Your title</label>
         <input id="titleInput" type="text" maxlength="48" autocomplete="off" />
         <div class="dialog-actions">
-          <button class="ghost-button" value="cancel" type="button" id="cancelTitleButton">Annuler</button>
-          <button class="primary-button" value="save" type="submit">Enregistrer</button>
+          <button class="ghost-button" value="cancel" type="button" id="cancelTitleButton">Cancel</button>
+          <button class="primary-button" value="save" type="submit">Save</button>
         </div>
       </form>
     </dialog>
