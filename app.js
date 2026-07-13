@@ -109,11 +109,18 @@ function createCard(item) {
   const remove = document.createElement("button");
   remove.className = "remove-image";
   remove.type = "button";
-  remove.setAttribute("aria-label", `Remove ${item.name}`);
-  remove.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" /></svg>';
+  const isInLibrary = item.zone === "library";
+  remove.classList.toggle("is-return", !isInLibrary);
+  remove.setAttribute(
+    "aria-label",
+    isInLibrary ? `Delete ${item.name}` : `Return ${item.name} to the library`,
+  );
+  remove.innerHTML = isInLibrary
+    ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" /></svg>'
+    : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M4 12h10a6 6 0 0 1 6 6v1" /></svg>';
   remove.addEventListener("click", (event) => {
     event.stopPropagation();
-    removeItem(item.id);
+    handleCardRemoval(item);
   });
 
   card.addEventListener("click", (event) => {
@@ -129,7 +136,10 @@ function createCard(item) {
       event.preventDefault();
       selectItem(item.id);
     }
-    if (event.key === "Delete" || event.key === "Backspace") removeItem(item.id);
+    if (event.key === "Delete" || event.key === "Backspace") {
+      event.preventDefault();
+      handleCardRemoval(item);
+    }
   });
   card.addEventListener("pointerdown", (event) => startPointerDrag(event, item, card));
   card.addEventListener("pointermove", updatePointerDrag);
@@ -324,6 +334,15 @@ function removeItem(id) {
   if (state.selectedId === id) state.selectedId = null;
   renderItems();
   showToast("Image removed");
+}
+
+function handleCardRemoval(item) {
+  if (item.zone === "library") {
+    removeItem(item.id);
+    return;
+  }
+  moveItem(item.id, "library");
+  showToast("Image returned to the library");
 }
 
 function loadCanvasImage(src) {

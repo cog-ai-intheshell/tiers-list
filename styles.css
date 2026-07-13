@@ -480,6 +480,10 @@ h1 {
   background: #ff695f;
 }
 
+.remove-image.is-return:hover {
+  background: var(--color-deep-thought);
+}
+
 .remove-image svg {
   width: 12px;
   height: 12px;
