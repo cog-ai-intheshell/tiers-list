@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#191919" />
     <meta
       name="description"
-      content="Create a visual tier list, import your images, and rank them with drag and drop."
+      content="Create a visual tier list, add images or text blocks, and rank them with drag and drop."
     />
     <title>Knighter — Tier List Maker</title>
     <link rel="stylesheet" href="styles.css" />
@@ -50,18 +50,25 @@
             </div>
           </div>
 
-          <label class="format-control">
-            <span>IMAGE FORMAT</span>
-            <span class="select-wrap">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" /></svg>
-              <select id="formatSelect" aria-label="Image format">
-                <option value="square">Square · 1:1</option>
-                <option value="portrait">Portrait · 4:5</option>
-                <option value="landscape">Landscape · 16:9</option>
-              </select>
-              <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4" /></svg>
-            </span>
-          </label>
+          <div class="library-controls">
+            <button class="ghost-button add-text-button" id="addTextButton" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M12 6v13M8 19h8" /></svg>
+              <span>Add text</span>
+            </button>
+
+            <label class="format-control">
+              <span>CARD FORMAT</span>
+              <span class="select-wrap">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" /></svg>
+                <select id="formatSelect" aria-label="Card format">
+                  <option value="square">Square · 1:1</option>
+                  <option value="portrait">Portrait · 4:5</option>
+                  <option value="landscape">Landscape · 16:9</option>
+                </select>
+                <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 10 4 4 4-4" /></svg>
+              </span>
+            </label>
+          </div>
         </div>
 
         <div class="library-dropzone" id="libraryDropzone" tabindex="0" role="button" aria-label="Import images">
@@ -96,7 +103,7 @@
 
     <footer>
       <span>KNIGHTER TIERS LIST / 2026</span>
-      <span>Your images stay in your browser.</span>
+      <span>Your content stays in your browser.</span>
     </footer>
 
     <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
@@ -112,6 +119,25 @@
         <div class="dialog-actions">
           <button class="ghost-button" value="cancel" type="button" id="cancelTitleButton">Cancel</button>
           <button class="primary-button" value="save" type="submit">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="textDialog">
+      <form method="dialog" id="textForm">
+        <div class="dialog-kicker">CREATE</div>
+        <h2>Text block</h2>
+        <label for="textInput">Your text</label>
+        <textarea
+          id="textInput"
+          maxlength="140"
+          rows="5"
+          placeholder="Write something to rank…"
+          required
+        ></textarea>
+        <div class="dialog-actions">
+          <button class="ghost-button" value="cancel" type="button" id="cancelTextButton">Cancel</button>
+          <button class="primary-button" value="save" type="submit">Add to library</button>
         </div>
       </form>
     </dialog>

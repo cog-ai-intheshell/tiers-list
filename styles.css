@@ -52,7 +52,8 @@ body {
 
 button,
 select,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -358,7 +359,7 @@ h1 {
 .tier-dropzone:empty::after {
   margin-left: 14px;
   color: #555750;
-  content: "Drop an image";
+  content: "Drop an item";
   font-size: 12px;
   font-weight: 600;
   grid-column: 1 / -1;
@@ -439,6 +440,44 @@ h1 {
   object-fit: cover;
 }
 
+.text-card-content {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+  background: #202020;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: clamp(12px, 1.15vw, 16px);
+  font-weight: 700;
+  line-height: 1.16;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  text-align: center;
+}
+
+.image-card.is-text-card {
+  border-color: transparent;
+  background: #202020;
+}
+
+.image-card.is-text-card:hover,
+.image-card.is-text-card.is-selected {
+  border-color: var(--color-deep-thought);
+}
+
+.tier-dropzone .text-card-content {
+  padding: clamp(7px, 1vw, 14px);
+  font-size: clamp(9px, 1vw, 14px);
+}
+
+.is-text-card::after {
+  display: none;
+}
+
 .image-card::after {
   position: absolute;
   inset: auto 0 0;
@@ -499,6 +538,17 @@ h1 {
   justify-content: space-between;
   gap: 20px;
   margin-bottom: 20px;
+}
+
+.library-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.add-text-button {
+  min-height: 43px;
+  white-space: nowrap;
 }
 
 .library-title-row {
@@ -809,7 +859,21 @@ dialog input {
   color: white;
 }
 
-dialog input:focus {
+dialog textarea {
+  width: 100%;
+  min-height: 126px;
+  padding: 13px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: 0;
+  background: #10110f;
+  color: white;
+  line-height: 1.45;
+}
+
+dialog input:focus,
+dialog textarea:focus {
   border-color: var(--color-deep-thought);
 }
 
@@ -893,6 +957,16 @@ dialog input:focus {
   .library-header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .library-controls {
+    align-items: stretch;
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+
+  .add-text-button {
+    width: 100%;
   }
 
   .export-section {

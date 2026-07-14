@@ -25,6 +25,8 @@ const toast = document.querySelector("#toast");
 const pageTitle = document.querySelector("#pageTitle");
 const titleDialog = document.querySelector("#titleDialog");
 const titleInput = document.querySelector("#titleInput");
+const textDialog = document.querySelector("#textDialog");
+const textInput = document.querySelector("#textInput");
 const downloadButton = document.querySelector("#downloadButton");
 
 let toastTimer;
@@ -92,19 +94,29 @@ function buildTierRows() {
 }
 
 function createCard(item) {
+  const isText = item.type === "text";
+  const itemLabel = isText ? item.text : item.name;
   const card = document.createElement("article");
   card.className = "image-card";
+  card.classList.toggle("is-text-card", isText);
   card.draggable = false;
   card.dataset.itemId = item.id;
   card.tabIndex = 0;
   card.setAttribute("role", "button");
-  card.setAttribute("aria-label", `${item.name}. Click to select, or drag.`);
+  card.setAttribute("aria-label", `${itemLabel}. Click to select, or drag.`);
   if (state.selectedId === item.id) card.classList.add("is-selected");
 
-  const image = document.createElement("img");
-  image.src = item.src;
-  image.alt = item.name;
-  image.draggable = false;
+  let content;
+  if (isText) {
+    content = document.createElement("div");
+    content.className = "text-card-content";
+    content.textContent = item.text;
+  } else {
+    content = document.createElement("img");
+    content.src = item.src;
+    content.alt = item.name;
+    content.draggable = false;
+  }
 
   const remove = document.createElement("button");
   remove.className = "remove-image";
@@ -113,7 +125,7 @@ function createCard(item) {
   remove.classList.toggle("is-return", !isInLibrary);
   remove.setAttribute(
     "aria-label",
-    isInLibrary ? `Delete ${item.name}` : `Return ${item.name} to the library`,
+    isInLibrary ? `Delete ${itemLabel}` : `Return ${itemLabel} to the library`,
   );
   remove.innerHTML = isInLibrary
     ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" /></svg>'
@@ -144,7 +156,7 @@ function createCard(item) {
   card.addEventListener("pointerdown", (event) => startPointerDrag(event, item, card));
   card.addEventListener("pointermove", updatePointerDrag);
 
-  card.append(image, remove);
+  card.append(content, remove);
   return card;
 }
 
@@ -273,11 +285,11 @@ function renderItems() {
   const ranked = state.items.filter((item) => item.zone !== "library").length;
   const libraryCount = total - ranked;
   libraryDropzone.classList.toggle("has-images", libraryCount > 0);
-  imageCount.textContent = `${libraryCount} image${libraryCount === 1 ? "" : "s"}`;
+  imageCount.textContent = `${libraryCount} item${libraryCount === 1 ? "" : "s"}`;
   boardStatus.textContent = total ? `${ranked} / ${total} ranked` : "Ready to rank";
   selectionHelp.innerHTML = state.selectedId
-    ? '<span>Image selected</span> Click a tier or the library to move it.'
-    : '<span>Tip</span> Click an image, then click a tier to move it without dragging.';
+    ? '<span>Item selected</span> Click a tier or the library to move it.'
+    : '<span>Tip</span> Click an item, then click a tier to move it without dragging.';
   window.requestAnimationFrame(updateTierLayouts);
 }
 
@@ -314,6 +326,36 @@ function updateTierLayouts() {
     zone.style.setProperty("--tier-columns", String(columns));
     zone.style.setProperty("--tier-card-width", `${cardWidth}px`);
   });
+
+  fitTextCards();
+}
+
+function fitTextCards() {
+  document.querySelectorAll(".text-card-content").forEach((content) => {
+    content.style.removeProperty("font-size");
+    const maxFontSize = Number.parseFloat(getComputedStyle(content).fontSize);
+    const minFontSize = 7;
+    content.style.fontSize = `${maxFontSize}px`;
+
+    if (content.scrollHeight <= content.clientHeight + 1) return;
+
+    let smallestFit = minFontSize;
+    let lowerBound = minFontSize;
+    let upperBound = maxFontSize;
+
+    for (let step = 0; step < 7; step += 1) {
+      const candidate = (lowerBound + upperBound) / 2;
+      content.style.fontSize = `${candidate}px`;
+      if (content.scrollHeight <= content.clientHeight + 1) {
+        smallestFit = candidate;
+        lowerBound = candidate;
+      } else {
+        upperBound = candidate;
+      }
+    }
+
+    content.style.fontSize = `${smallestFit}px`;
+  });
 }
 
 function selectItem(id) {
@@ -330,10 +372,11 @@ function moveItem(id, zone) {
 }
 
 function removeItem(id) {
+  const item = state.items.find((candidate) => candidate.id === id);
   state.items = state.items.filter((item) => item.id !== id);
   if (state.selectedId === id) state.selectedId = null;
   renderItems();
-  showToast("Image removed");
+  showToast(item?.type === "text" ? "Text block removed" : "Image removed");
 }
 
 function handleCardRemoval(item) {
@@ -342,7 +385,7 @@ function handleCardRemoval(item) {
     return;
   }
   moveItem(item.id, "library");
-  showToast("Image returned to the library");
+  showToast(item.type === "text" ? "Text block returned to the library" : "Image returned to the library");
 }
 
 function loadCanvasImage(src) {
@@ -409,6 +452,95 @@ function drawCenteredLabel(context, text, x, y, width, height) {
   });
 }
 
+function wrapCanvasText(context, text, maxWidth, maxLines = 5) {
+  const paragraphs = text.trim().split(/\n+/);
+  const lines = [];
+
+  function splitWord(word) {
+    const parts = [];
+    let part = "";
+    [...word].forEach((character) => {
+      if (context.measureText(`${part}${character}`).width > maxWidth && part) {
+        parts.push(part);
+        part = character;
+      } else {
+        part += character;
+      }
+    });
+    if (part) parts.push(part);
+    return parts;
+  }
+
+  paragraphs.forEach((paragraph) => {
+    const words = paragraph.trim().split(/\s+/).filter(Boolean)
+      .flatMap((word) => context.measureText(word).width > maxWidth ? splitWord(word) : [word]);
+    let line = "";
+    words.forEach((word) => {
+      const candidate = line ? `${line} ${word}` : word;
+      if (context.measureText(candidate).width > maxWidth && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = candidate;
+      }
+    });
+    if (line) lines.push(line);
+  });
+
+  if (lines.length > maxLines) {
+    const visibleLines = lines.slice(0, maxLines);
+    let lastLine = visibleLines[maxLines - 1];
+    while (context.measureText(`${lastLine}…`).width > maxWidth && lastLine.length > 1) {
+      lastLine = lastLine.slice(0, -1);
+    }
+    visibleLines[maxLines - 1] = `${lastLine.trimEnd()}…`;
+    return visibleLines;
+  }
+
+  return lines;
+}
+
+function drawTextBlock(context, text, x, y, width, height) {
+  context.save();
+  context.fillStyle = "#202020";
+  context.beginPath();
+  context.roundRect(x, y, width, height, 8);
+  context.fill();
+
+  const maxFontSize = Math.max(13, Math.min(26, width * 0.13, height * 0.18));
+  const minFontSize = 8;
+  const availableTextWidth = width - 28;
+  const availableTextHeight = height - 24;
+  let fontSize = maxFontSize;
+  let lineHeight = fontSize * 1.18;
+  let lines = [];
+
+  context.fillStyle = "#f8f8f8";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+
+  while (fontSize >= minFontSize) {
+    context.font = `700 ${fontSize}px "SF Pro Display", -apple-system, sans-serif`;
+    lineHeight = fontSize * 1.18;
+    lines = wrapCanvasText(context, text, availableTextWidth, Number.POSITIVE_INFINITY);
+    if (lines.length * lineHeight <= availableTextHeight) break;
+    fontSize -= 1;
+  }
+
+  context.font = `700 ${Math.max(fontSize, minFontSize)}px "SF Pro Display", -apple-system, sans-serif`;
+  lineHeight = Math.max(fontSize, minFontSize) * 1.18;
+  if (lines.length * lineHeight > availableTextHeight) {
+    const maxLines = Math.max(1, Math.floor(availableTextHeight / lineHeight));
+    lines = wrapCanvasText(context, text, availableTextWidth, maxLines);
+  }
+
+  const startY = y + height / 2 - ((lines.length - 1) * lineHeight) / 2;
+  lines.forEach((line, index) => {
+    context.fillText(line, x + width / 2, startY + index * lineHeight);
+  });
+  context.restore();
+}
+
 async function exportTierList() {
   const exportWidth = 1600;
   const margin = 80;
@@ -445,7 +577,7 @@ async function exportTierList() {
   context.fillText("RANKING", margin + 22, boardTop + 35);
 
   const loadedImages = new Map();
-  await Promise.all(state.items.map(async (item) => {
+  await Promise.all(state.items.filter((item) => item.type !== "text").map(async (item) => {
     try {
       loadedImages.set(item.id, await loadCanvasImage(item.src));
     } catch {
@@ -495,18 +627,16 @@ async function exportTierList() {
     const gridTop = rowTop + (rowHeight - gridHeight) / 2;
 
     items.forEach((item, itemIndex) => {
-      const image = loadedImages.get(item.id);
-      if (!image) return;
       const column = itemIndex % columns;
       const row = Math.floor(itemIndex / columns);
-      drawCoverImage(
-        context,
-        image,
-        contentLeft + padding + column * (cellWidth + gap),
-        gridTop + row * (imageHeight + gap),
-        cellWidth,
-        imageHeight,
-      );
+      const x = contentLeft + padding + column * (cellWidth + gap);
+      const y = gridTop + row * (imageHeight + gap);
+      if (item.type === "text") {
+        drawTextBlock(context, item.text, x, y, cellWidth, imageHeight);
+        return;
+      }
+      const image = loadedImages.get(item.id);
+      if (image) drawCoverImage(context, image, x, y, cellWidth, imageHeight);
     });
 
     context.strokeStyle = "rgba(248, 248, 248, 0.08)";
@@ -593,6 +723,7 @@ function loadFiles(files, zone = "library") {
     reader.addEventListener("load", () => {
       state.items.push({
         id: makeId(),
+        type: "image",
         name: file.name.replace(/\.[^.]+$/, ""),
         src: reader.result,
         zone,
@@ -637,6 +768,29 @@ document.addEventListener("paste", (event) => {
 });
 
 formatSelect.addEventListener("change", () => updateFormat(formatSelect.value));
+
+document.querySelector("#addTextButton").addEventListener("click", () => {
+  textInput.value = "";
+  textDialog.showModal();
+  textInput.focus();
+});
+
+document.querySelector("#cancelTextButton").addEventListener("click", () => textDialog.close());
+document.querySelector("#textForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const text = textInput.value.trim();
+  if (!text) return;
+  state.items.push({
+    id: makeId(),
+    type: "text",
+    name: text,
+    text,
+    zone: "library",
+  });
+  textDialog.close();
+  renderItems();
+  showToast("Text block added");
+});
 
 downloadButton.addEventListener("click", async () => {
   const label = downloadButton.querySelector("span");

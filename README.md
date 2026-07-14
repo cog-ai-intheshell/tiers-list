@@ -1,6 +1,6 @@
 # Knighter Tiers List
 
-Application web autonome permettant d’importer des images, de les classer dans une tier list et d’exporter le résultat en PNG.
+Application web autonome permettant d’importer des images ou de créer des blocs texte, de les classer dans une tier list et d’exporter le résultat en PNG.
 
 Le projet fonctionne entièrement dans le navigateur, sans framework, sans base de données et sans envoi d’images vers un serveur.
 
@@ -21,16 +21,18 @@ Ouvrir ensuite [http://localhost:4173](http://localhost:4173).
 
 ## Utilisation
 
-1. Cliquez dans la bibliothèque ou déposez-y des fichiers.
+1. Cliquez dans la bibliothèque ou déposez-y des fichiers. Utilisez **Add text** pour créer un bloc texte.
 2. Choisissez le format des vignettes : carré, portrait ou paysage.
-3. Faites glisser les images dans les catégories de la tier list.
-4. Pour déplacer une image sans glisser, cliquez dessus puis cliquez sur la catégorie souhaitée.
+3. Faites glisser les images et les blocs texte dans les catégories de la tier list.
+4. Pour déplacer un élément sans le faire glisser, cliquez dessus puis cliquez sur la catégorie souhaitée.
 5. Modifiez le titre ou les noms des catégories directement dans l’interface.
-6. Cliquez sur **Télécharger en PNG** en bas de la page pour exporter le classement.
+6. Cliquez sur **Download PNG** en bas de la page pour exporter le classement.
 
 ## Fonctionnalités
 
 - Import multiple de fichiers JPG, PNG et WEBP
+- Création de blocs texte classables comme les images
+- Taille de texte adaptative lorsque le contenu est long
 - Import par clic, glisser-déposer ou collage depuis le presse-papiers
 - Bibliothèque avec état vide automatique
 - Formats carré `1:1`, portrait `4:5` et paysage `16:9`
@@ -39,7 +41,7 @@ Ouvrir ensuite [http://localhost:4173](http://localhost:4173).
 - Titre et catégories modifiables
 - Retour automatique sur plusieurs lignes
 - Redimensionnement des vignettes pour conserver une hauteur fixe par catégorie
-- Suppression individuelle des images
+- Retour dans la bibliothèque ou suppression individuelle des éléments
 - Interface responsive
 - Export PNG local en haute résolution
 
@@ -49,16 +51,17 @@ Le fichier exporté mesure `1600 px` de large et contient :
 
 - Le titre de la tier list
 - Les cinq catégories et leurs couleurs
-- Toutes les images classées
+- Toutes les images et tous les blocs texte classés
 - Le ratio actuellement sélectionné
 - La mention de confidentialité Knighter Tiers List
 
-Les images encore présentes dans la bibliothèque ne sont pas incluses dans l’export.
+Les éléments encore présents dans la bibliothèque ne sont pas inclus dans l’export.
 
 ## Design system
 
 - Typographie : SF Pro Display et SF Pro Text
 - Fond principal : `#191919`
+- Fond des blocs texte : `#202020`, sans contour au repos
 - Accent interactif : `#5d71fc`
 - Palette des catégories issue du projet de positionnement
 - Contours bleus au survol et à la sélection
