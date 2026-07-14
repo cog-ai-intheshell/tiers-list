@@ -38,6 +38,33 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function parseTextBlocks(value) {
+  const normalized = value.replace(/\r\n?/g, "\n").trim();
+  if (!normalized) return [];
+
+  const lines = normalized.split("\n");
+  const firstContentLine = lines.find((line) => line.trim());
+  if (!firstContentLine || !/^\d+[.)]\s+\S/.test(firstContentLine)) return [normalized];
+
+  const blocks = [];
+  let currentBlock = "";
+
+  lines.forEach((line) => {
+    const topLevelMatch = line.match(/^\d+[.)]\s+(.+)$/);
+    if (topLevelMatch) {
+      if (currentBlock) blocks.push(currentBlock.trim());
+      currentBlock = topLevelMatch[1].trim();
+      return;
+    }
+
+    const continuation = line.trim();
+    if (continuation && currentBlock) currentBlock += `\n${continuation}`;
+  });
+
+  if (currentBlock) blocks.push(currentBlock.trim());
+  return blocks.filter(Boolean);
+}
+
 function showToast(message) {
   window.clearTimeout(toastTimer);
   toast.textContent = message;
@@ -110,7 +137,10 @@ function createCard(item) {
   if (isText) {
     content = document.createElement("div");
     content.className = "text-card-content";
-    content.textContent = item.text;
+    const textLabel = document.createElement("span");
+    textLabel.className = "text-card-label";
+    textLabel.textContent = item.text;
+    content.append(textLabel);
   } else {
     content = document.createElement("img");
     content.src = item.src;
@@ -332,12 +362,21 @@ function updateTierLayouts() {
 
 function fitTextCards() {
   document.querySelectorAll(".text-card-content").forEach((content) => {
+    const label = content.querySelector(".text-card-label");
+    if (!label) return;
+
     content.style.removeProperty("font-size");
-    const maxFontSize = Number.parseFloat(getComputedStyle(content).fontSize);
-    const minFontSize = 7;
+    const styles = getComputedStyle(content);
+    const maxFontSize = Number.parseFloat(styles.fontSize);
+    const minFontSize = 6;
+    const availableHeight = content.clientHeight
+      - Number.parseFloat(styles.paddingTop)
+      - Number.parseFloat(styles.paddingBottom);
+
+    const fits = () => label.getBoundingClientRect().height <= availableHeight + 1;
     content.style.fontSize = `${maxFontSize}px`;
 
-    if (content.scrollHeight <= content.clientHeight + 1) return;
+    if (fits()) return;
 
     let smallestFit = minFontSize;
     let lowerBound = minFontSize;
@@ -346,7 +385,7 @@ function fitTextCards() {
     for (let step = 0; step < 7; step += 1) {
       const candidate = (lowerBound + upperBound) / 2;
       content.style.fontSize = `${candidate}px`;
-      if (content.scrollHeight <= content.clientHeight + 1) {
+      if (fits()) {
         smallestFit = candidate;
         lowerBound = candidate;
       } else {
@@ -780,16 +819,19 @@ document.querySelector("#textForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const text = textInput.value.trim();
   if (!text) return;
-  state.items.push({
-    id: makeId(),
-    type: "text",
-    name: text,
-    text,
-    zone: "library",
+  const blocks = parseTextBlocks(text);
+  blocks.forEach((block) => {
+    state.items.push({
+      id: makeId(),
+      type: "text",
+      name: block,
+      text: block,
+      zone: "library",
+    });
   });
   textDialog.close();
   renderItems();
-  showToast("Text block added");
+  showToast(blocks.length === 1 ? "Text block added" : `${blocks.length} text blocks added`);
 });
 
 downloadButton.addEventListener("click", async () => {

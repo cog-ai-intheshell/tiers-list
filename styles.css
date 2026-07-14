@@ -457,6 +457,13 @@ h1 {
   overflow-wrap: anywhere;
   pointer-events: none;
   text-align: center;
+  white-space: pre-line;
+}
+
+.text-card-label {
+  display: block;
+  width: 100%;
+  max-width: 100%;
 }
 
 .image-card.is-text-card {
@@ -870,6 +877,42 @@ dialog textarea {
   background: #10110f;
   color: white;
   line-height: 1.45;
+}
+
+.secret-feature {
+  margin-top: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(93, 113, 252, 0.1);
+  color: var(--muted);
+}
+
+.secret-feature-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #91a0ff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.secret-feature-heading svg {
+  width: 15px;
+  height: 15px;
+}
+
+.secret-feature p {
+  margin: 8px 0 10px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.secret-feature code {
+  color: rgba(248, 248, 248, 0.66);
+  font-family: var(--font-text);
+  font-size: 10px;
 }
 
 dialog input:focus,

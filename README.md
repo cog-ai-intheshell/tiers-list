@@ -22,6 +22,7 @@ Ouvrir ensuite [http://localhost:4173](http://localhost:4173).
 ## Utilisation
 
 1. Cliquez dans la bibliothèque ou déposez-y des fichiers. Utilisez **Add text** pour créer un bloc texte.
+   Une liste numérotée collée dans la fenêtre crée automatiquement un bloc par point de premier niveau.
 2. Choisissez le format des vignettes : carré, portrait ou paysage.
 3. Faites glisser les images et les blocs texte dans les catégories de la tier list.
 4. Pour déplacer un élément sans le faire glisser, cliquez dessus puis cliquez sur la catégorie souhaitée.
@@ -32,6 +33,8 @@ Ouvrir ensuite [http://localhost:4173](http://localhost:4173).
 
 - Import multiple de fichiers JPG, PNG et WEBP
 - Création de blocs texte classables comme les images
+- Conversion automatique des listes numérotées en plusieurs blocs texte
+- Conservation des sous-points indentés dans le bloc de leur point parent
 - Taille de texte adaptative lorsque le contenu est long
 - Import par clic, glisser-déposer ou collage depuis le presse-papiers
 - Bibliothèque avec état vide automatique

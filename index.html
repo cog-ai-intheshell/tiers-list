@@ -130,11 +130,22 @@
         <label for="textInput">Your text</label>
         <textarea
           id="textInput"
-          maxlength="140"
-          rows="5"
-          placeholder="Write something to rank…"
+          maxlength="12000"
+          rows="7"
+          placeholder="Write one idea, or paste a numbered list…"
           required
         ></textarea>
+        <div class="secret-feature" aria-label="Secret feature">
+          <div class="secret-feature-heading">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1" /></svg>
+            <span>Secret feature</span>
+          </div>
+          <p>
+            Paste a numbered list and every top-level point becomes its own text block.
+            Indented sub-points stay with their parent.
+          </p>
+          <code>1. First idea&nbsp;&nbsp; 2. Second idea</code>
+        </div>
         <div class="dialog-actions">
           <button class="ghost-button" value="cancel" type="button" id="cancelTextButton">Cancel</button>
           <button class="primary-button" value="save" type="submit">Add to library</button>
