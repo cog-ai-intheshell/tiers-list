@@ -47,10 +47,13 @@ Ouvrir ensuite [http://localhost:4173](http://localhost:4173).
 - Retour dans la bibliothèque ou suppression individuelle des éléments
 - Interface responsive
 - Export PNG local en haute résolution
+- Export avec taille de carte fixe et hauteur de catégorie adaptative
 
 ## Export PNG
 
-Le fichier exporté mesure `1600 px` de large et contient :
+Le fichier exporté mesure `1600 px` de large. Sa hauteur s’adapte au nombre de rangées nécessaires dans chaque catégorie afin que les images et les blocs texte conservent une taille fixe et lisible.
+
+Il contient :
 
 - Le titre de la tier list
 - Les cinq catégories et leurs couleurs

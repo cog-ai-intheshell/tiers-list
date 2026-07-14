@@ -585,10 +585,34 @@ async function exportTierList() {
   const margin = 80;
   const titleHeight = 180;
   const boardHeaderHeight = 56;
-  const rowHeight = 220;
+  const minRowHeight = 220;
   const boardWidth = exportWidth - margin * 2;
   const labelWidth = 260;
-  const exportHeight = margin * 2 + titleHeight + boardHeaderHeight + rowHeight * tierDefinitions.length;
+  const contentWidth = boardWidth - labelWidth;
+  const cardWidth = 172;
+  const padding = 18;
+  const gap = 12;
+  const imageRatio = {
+    square: 1,
+    portrait: 4 / 5,
+    landscape: 16 / 9,
+  }[state.format];
+  const cardHeight = cardWidth / imageRatio;
+  const availableWidth = contentWidth - padding * 2;
+  const maxColumns = Math.max(1, Math.floor((availableWidth + gap) / (cardWidth + gap)));
+  const tierLayouts = tierDefinitions.map((tier) => {
+    const items = state.items.filter((item) => item.zone === tier.id);
+    const rows = Math.max(1, Math.ceil(items.length / maxColumns));
+    const contentHeight = padding * 2 + rows * cardHeight + (rows - 1) * gap;
+    return {
+      tier,
+      items,
+      rows,
+      rowHeight: Math.ceil(Math.max(minRowHeight, contentHeight)),
+    };
+  });
+  const rowsHeight = tierLayouts.reduce((total, layout) => total + layout.rowHeight, 0);
+  const exportHeight = margin * 2 + titleHeight + boardHeaderHeight + rowsHeight;
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
   canvas.width = exportWidth;
@@ -624,14 +648,8 @@ async function exportTierList() {
     }
   }));
 
-  const imageRatio = {
-    square: 1,
-    portrait: 4 / 5,
-    landscape: 16 / 9,
-  }[state.format];
-
-  tierDefinitions.forEach((tier, tierIndex) => {
-    const rowTop = boardTop + boardHeaderHeight + tierIndex * rowHeight;
+  let rowTop = boardTop + boardHeaderHeight;
+  tierLayouts.forEach(({ tier, items, rows, rowHeight }) => {
     context.fillStyle = tier.color;
     context.fillRect(margin, rowTop, labelWidth, rowHeight);
 
@@ -642,40 +660,23 @@ async function exportTierList() {
     drawCenteredLabel(context, tier.label, margin, rowTop, labelWidth, rowHeight);
 
     const contentLeft = margin + labelWidth;
-    const contentWidth = boardWidth - labelWidth;
     context.fillStyle = "#1b1b1b";
     context.fillRect(contentLeft, rowTop, contentWidth, rowHeight);
 
-    const items = state.items.filter((item) => item.zone === tier.id);
-    const padding = 18;
-    const gap = 12;
-    const availableWidth = contentWidth - padding * 2;
-    const availableHeight = rowHeight - padding * 2;
-    const baseWidth = Math.min(172, availableHeight * imageRatio);
-    const maxColumns = Math.max(1, Math.floor((availableWidth + gap) / (baseWidth + gap)));
-    const rows = Math.max(1, Math.ceil(items.length / maxColumns));
-    const columns = items.length ? Math.min(maxColumns, Math.ceil(items.length / rows)) : 1;
-    const cellHeight = Math.max(1, (availableHeight - gap * (rows - 1)) / rows);
-    const cellWidth = Math.min(
-      baseWidth,
-      cellHeight * imageRatio,
-      (availableWidth - gap * (columns - 1)) / columns,
-    );
-    const imageHeight = cellWidth / imageRatio;
-    const gridHeight = rows * imageHeight + (rows - 1) * gap;
+    const gridHeight = rows * cardHeight + (rows - 1) * gap;
     const gridTop = rowTop + (rowHeight - gridHeight) / 2;
 
     items.forEach((item, itemIndex) => {
-      const column = itemIndex % columns;
-      const row = Math.floor(itemIndex / columns);
-      const x = contentLeft + padding + column * (cellWidth + gap);
-      const y = gridTop + row * (imageHeight + gap);
+      const column = itemIndex % maxColumns;
+      const row = Math.floor(itemIndex / maxColumns);
+      const x = contentLeft + padding + column * (cardWidth + gap);
+      const y = gridTop + row * (cardHeight + gap);
       if (item.type === "text") {
-        drawTextBlock(context, item.text, x, y, cellWidth, imageHeight);
+        drawTextBlock(context, item.text, x, y, cardWidth, cardHeight);
         return;
       }
       const image = loadedImages.get(item.id);
-      if (image) drawCoverImage(context, image, x, y, cellWidth, imageHeight);
+      if (image) drawCoverImage(context, image, x, y, cardWidth, cardHeight);
     });
 
     context.strokeStyle = "rgba(248, 248, 248, 0.08)";
@@ -684,6 +685,8 @@ async function exportTierList() {
     context.moveTo(margin, rowTop + rowHeight - 0.5);
     context.lineTo(margin + boardWidth, rowTop + rowHeight - 0.5);
     context.stroke();
+
+    rowTop += rowHeight;
   });
 
   const footerLineY = exportHeight - 62;
