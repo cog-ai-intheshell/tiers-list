@@ -8,6 +8,10 @@ Le projet fonctionne entièrement dans le navigateur, sans framework, sans base 
 
 [https://knighter-tierslist.vercel.app/](https://knighter-tierslist.vercel.app/)
 
+## Aperçu de l’interface
+
+![Interface de Knighter Tiers List](./assets/knighter-tier-list-interface.jpg)
+
 ## Lancer le projet
 
 Prérequis : Python 3 et npm.
