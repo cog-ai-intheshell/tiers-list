@@ -69,6 +69,7 @@ Les éléments encore présents dans la bibliothèque ne sont pas inclus dans l�
 - Fond principal : `#191919`
 - Fond des blocs texte : `#202020`, sans contour au repos
 - Accent interactif : `#5d71fc`
+- Bouton d’édition du titre sans contour, avec retour visuel au survol
 - Palette des catégories issue du projet de positionnement
 - Contours bleus au survol et à la sélection
 
