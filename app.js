@@ -13,6 +13,12 @@ const state = {
   format: "square",
 };
 
+const JSON_SCHEMA = "knighter-tier-list";
+const JSON_VERSION = 1;
+const VALID_FORMATS = new Set(["square", "portrait", "landscape"]);
+const MAX_JSON_FILE_SIZE = 100 * 1024 * 1024;
+const MAX_IMPORTED_ITEMS = 500;
+
 const tierBoard = document.querySelector("#tierBoard");
 const libraryGrid = document.querySelector("#libraryGrid");
 const libraryDropzone = document.querySelector("#libraryDropzone");
@@ -20,6 +26,7 @@ const imageCount = document.querySelector("#imageCount");
 const boardStatus = document.querySelector("#boardStatus");
 const selectionHelp = document.querySelector("#selectionHelp");
 const fileInput = document.querySelector("#fileInput");
+const jsonInput = document.querySelector("#jsonInput");
 const formatSelect = document.querySelector("#formatSelect");
 const toast = document.querySelector("#toast");
 const pageTitle = document.querySelector("#pageTitle");
@@ -28,6 +35,8 @@ const titleInput = document.querySelector("#titleInput");
 const textDialog = document.querySelector("#textDialog");
 const textInput = document.querySelector("#textInput");
 const downloadButton = document.querySelector("#downloadButton");
+const downloadJsonButton = document.querySelector("#downloadJsonButton");
+const importJsonButton = document.querySelector("#importJsonButton");
 
 let toastTimer;
 let pointerSession = null;
@@ -72,7 +81,7 @@ function showToast(message) {
   toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2200);
 }
 
-function updateFormat(format) {
+function updateFormat(format, notify = true) {
   state.format = format;
   const ratio = {
     square: "1 / 1",
@@ -81,7 +90,9 @@ function updateFormat(format) {
   }[format];
   document.documentElement.style.setProperty("--tile-ratio", ratio);
   window.requestAnimationFrame(updateTierLayouts);
-  showToast(`${format === "square" ? "Square" : format === "portrait" ? "Portrait" : "Landscape"} format applied`);
+  if (notify) {
+    showToast(`${format === "square" ? "Square" : format === "portrait" ? "Portrait" : "Landscape"} format applied`);
+  }
 }
 
 function buildTierRows() {
@@ -580,6 +591,159 @@ function drawTextBlock(context, text, x, y, width, height) {
   context.restore();
 }
 
+function makeSafeFilename() {
+  return pageTitle.textContent.trim().toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "tier-list";
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function createTierListJson() {
+  return {
+    schema: JSON_SCHEMA,
+    version: JSON_VERSION,
+    exportedAt: new Date().toISOString(),
+    title: pageTitle.textContent.trim(),
+    format: state.format,
+    tiers: tierDefinitions.map(({ id, label, color }) => ({ id, label, color })),
+    items: state.items.map((item) => {
+      const exportedItem = {
+        id: item.id,
+        type: item.type,
+        name: item.name,
+        zone: item.zone,
+      };
+      if (item.type === "text") exportedItem.text = item.text;
+      if (item.type === "image") exportedItem.src = item.src;
+      return exportedItem;
+    }),
+  };
+}
+
+function exportTierListJson() {
+  const contents = JSON.stringify(createTierListJson(), null, 2);
+  const blob = new Blob([contents], { type: "application/json;charset=utf-8" });
+  downloadBlob(blob, `${makeSafeFilename()}.json`);
+}
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function validateTierListJson(documentData) {
+  if (!isPlainObject(documentData)) throw new Error("This JSON file is not a tier list");
+  if (documentData.schema !== JSON_SCHEMA) throw new Error("Unsupported JSON file");
+  if (documentData.version !== JSON_VERSION) throw new Error("Unsupported tier list version");
+
+  const title = typeof documentData.title === "string" ? documentData.title.trim() : "";
+  if (!title || title.length > 48) throw new Error("The JSON title is invalid");
+  if (!VALID_FORMATS.has(documentData.format)) throw new Error("The card format is invalid");
+  if (!Array.isArray(documentData.tiers)) throw new Error("The tier definitions are missing");
+
+  const tierById = new Map();
+  documentData.tiers.forEach((tier) => {
+    if (isPlainObject(tier) && typeof tier.id === "string") tierById.set(tier.id, tier);
+  });
+
+  const tiers = tierDefinitions.map((currentTier) => {
+    const importedTier = tierById.get(currentTier.id);
+    if (!importedTier) throw new Error(`The “${currentTier.label}” tier is missing`);
+    const label = typeof importedTier.label === "string" ? importedTier.label.trim() : "";
+    const color = typeof importedTier.color === "string" ? importedTier.color : "";
+    if (!label || label.length > 28) throw new Error("A tier name is invalid");
+    if (!/^#[0-9a-f]{6}$/i.test(color)) throw new Error("A tier color is invalid");
+    return { id: currentTier.id, label, color };
+  });
+
+  if (!Array.isArray(documentData.items)) throw new Error("The tier list items are missing");
+  if (documentData.items.length > MAX_IMPORTED_ITEMS) {
+    throw new Error(`A tier list can contain up to ${MAX_IMPORTED_ITEMS} items`);
+  }
+
+  const validZones = new Set(["library", ...tierDefinitions.map((tier) => tier.id)]);
+  const items = documentData.items.map((item, index) => {
+    const itemNumber = index + 1;
+    if (!isPlainObject(item)) throw new Error(`Item ${itemNumber} is invalid`);
+    if (!validZones.has(item.zone)) throw new Error(`Item ${itemNumber} has an invalid position`);
+
+    if (item.type === "text") {
+      const text = typeof item.text === "string" ? item.text.trim() : "";
+      if (!text || text.length > 12000) throw new Error(`Text item ${itemNumber} is invalid`);
+      return {
+        id: makeId(),
+        type: "text",
+        name: text.slice(0, 160),
+        text,
+        zone: item.zone,
+      };
+    }
+
+    if (item.type === "image") {
+      const source = typeof item.src === "string" ? item.src : "";
+      const prefix = source.match(/^data:image\/(?:jpeg|png|webp);base64,/i)?.[0];
+      const encodedImage = prefix ? source.slice(prefix.length) : "";
+      const isValidImage = encodedImage
+        && encodedImage.length % 4 === 0
+        && /^[a-z0-9+/]+={0,2}$/i.test(encodedImage);
+      if (!isValidImage) throw new Error(`Image ${itemNumber} is invalid`);
+      const importedName = typeof item.name === "string" ? item.name.trim() : "";
+      return {
+        id: makeId(),
+        type: "image",
+        name: importedName.slice(0, 160) || `Image ${itemNumber}`,
+        src: source,
+        zone: item.zone,
+      };
+    }
+
+    throw new Error(`Item ${itemNumber} has an unsupported type`);
+  });
+
+  return {
+    title,
+    format: documentData.format,
+    tiers,
+    items,
+  };
+}
+
+async function importTierListJson(file) {
+  if (!file) return;
+  if (file.size > MAX_JSON_FILE_SIZE) throw new Error("The JSON file is too large");
+
+  let documentData;
+  try {
+    documentData = JSON.parse(await file.text());
+  } catch {
+    throw new Error("The selected file is not valid JSON");
+  }
+
+  const importedTierList = validateTierListJson(documentData);
+  cancelPointerDrag();
+  importedTierList.tiers.forEach((importedTier, index) => {
+    tierDefinitions[index].label = importedTier.label;
+    tierDefinitions[index].color = importedTier.color;
+  });
+  pageTitle.textContent = importedTierList.title;
+  state.items = importedTierList.items;
+  state.selectedId = null;
+  state.draggedId = null;
+  formatSelect.value = importedTierList.format;
+  buildTierRows();
+  updateFormat(importedTierList.format, false);
+  renderItems();
+}
+
 async function exportTierList() {
   const exportWidth = 1600;
   const margin = 80;
@@ -711,17 +875,7 @@ async function exportTierList() {
 
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
   if (!blob) throw new Error("Unable to generate the PNG");
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  const safeTitle = pageTitle.textContent.trim().toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  link.href = url;
-  link.download = `${safeTitle || "tier-list"}.png`;
-  link.click();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadBlob(blob, `${makeSafeFilename()}.png`);
 }
 
 function addDropEvents(element, zone) {
@@ -783,6 +937,27 @@ function loadFiles(files, zone = "library") {
 fileInput.addEventListener("change", () => {
   loadFiles([...fileInput.files]);
   fileInput.value = "";
+});
+
+importJsonButton.addEventListener("click", () => jsonInput.click());
+jsonInput.addEventListener("change", async () => {
+  const file = jsonInput.files?.[0];
+  if (!file) return;
+
+  const label = importJsonButton.querySelector("span");
+  const initialLabel = label.textContent;
+  importJsonButton.disabled = true;
+  label.textContent = "Importing…";
+  try {
+    await importTierListJson(file);
+    showToast("Tier list imported from JSON");
+  } catch (error) {
+    showToast(error instanceof Error ? error.message : "The tier list could not be imported");
+  } finally {
+    jsonInput.value = "";
+    importJsonButton.disabled = false;
+    label.textContent = initialLabel;
+  }
 });
 
 libraryDropzone.addEventListener("click", (event) => {
@@ -853,6 +1028,15 @@ downloadButton.addEventListener("click", async () => {
   }
 });
 
+downloadJsonButton.addEventListener("click", () => {
+  try {
+    exportTierListJson();
+    showToast("Editable tier list downloaded as JSON");
+  } catch {
+    showToast("The JSON file could not be generated");
+  }
+});
+
 document.querySelector("#editTitleButton").addEventListener("click", () => {
   titleInput.value = pageTitle.textContent;
   titleDialog.showModal();
@@ -869,7 +1053,7 @@ document.querySelector("#titleForm").addEventListener("submit", (event) => {
 
 buildTierRows();
 renderItems();
-updateFormat("square");
+updateFormat("square", false);
 
 let resizeFrame;
 window.addEventListener("resize", () => {

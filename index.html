@@ -51,10 +51,16 @@
           </div>
 
           <div class="library-controls">
-            <button class="ghost-button add-text-button" id="addTextButton" type="button">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M12 6v13M8 19h8" /></svg>
-              <span>Add text</span>
-            </button>
+            <div class="library-action-buttons">
+              <button class="ghost-button add-text-button" id="addTextButton" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M12 6v13M8 19h8" /></svg>
+                <span>Add text</span>
+              </button>
+              <button class="ghost-button import-json-button" id="importJsonButton" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0-12L7 9m5-5 5 5M4 16v4h16v-4" /></svg>
+                <span>Import JSON</span>
+              </button>
+            </div>
 
             <label class="format-control">
               <span>CARD FORMAT</span>
@@ -92,12 +98,18 @@
         <div>
           <div class="section-kicker">EXPORT</div>
           <h2 id="exportTitle">Is your tier list ready?</h2>
-          <p>Download a crisp PNG, ready to share.</p>
+          <p>Share a crisp PNG or save an editable JSON file.</p>
         </div>
-        <button class="primary-button export-button" id="downloadButton" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0 0 5-5m-5 5-5-5M4 20h16" /></svg>
-          <span>Download PNG</span>
-        </button>
+        <div class="export-actions">
+          <button class="ghost-button export-button" id="downloadJsonButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0 0 5-5m-5 5-5-5M4 20h16" /></svg>
+            <span>Download JSON</span>
+          </button>
+          <button class="primary-button export-button" id="downloadButton" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v12m0 0 5-5m-5 5-5-5M4 20h16" /></svg>
+            <span>Download PNG</span>
+          </button>
+        </div>
       </section>
     </main>
 
@@ -107,6 +119,7 @@
     </footer>
 
     <input id="fileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
+    <input id="jsonInput" type="file" accept="application/json,.json" hidden />
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 

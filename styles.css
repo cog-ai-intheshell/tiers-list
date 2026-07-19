@@ -162,6 +162,13 @@ svg {
   transform: translateY(-1px);
 }
 
+.ghost-button:disabled,
+.primary-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+  transform: none;
+}
+
 .ghost-button svg,
 .primary-button svg {
   width: 17px;
@@ -553,7 +560,19 @@ h1 {
   gap: 18px;
 }
 
+.library-action-buttons,
+.export-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .add-text-button {
+  min-height: 43px;
+  white-space: nowrap;
+}
+
+.import-json-button {
   min-height: 43px;
   white-space: nowrap;
 }
@@ -771,12 +790,6 @@ h1 {
   min-height: 48px;
   padding-inline: 20px;
   border-radius: 16px;
-}
-
-.export-button:disabled {
-  cursor: wait;
-  opacity: 0.65;
-  transform: none;
 }
 
 footer {
@@ -1008,7 +1021,16 @@ dialog textarea:focus {
     gap: 12px;
   }
 
-  .add-text-button {
+  .library-action-buttons {
+    align-items: stretch;
+  }
+
+  .library-action-buttons > button {
+    flex: 1;
+  }
+
+  .add-text-button,
+  .import-json-button {
     width: 100%;
   }
 
@@ -1016,6 +1038,11 @@ dialog textarea:focus {
     align-items: stretch;
     flex-direction: column;
     margin-bottom: 40px;
+  }
+
+  .export-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .export-button {
